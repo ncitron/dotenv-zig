@@ -29,8 +29,8 @@ pub fn getEnvMap(allocator: std.mem.Allocator, path: []const u8) !std.StringHash
     return map;
 }
 
-test "read env" {
-    var map = try getEnvMap(std.testing.allocator, ".env.testing");
+pub fn getEnvVar(allocator: std.mem.Allocator, path: []const u8, name: []const u8) ![]const u8 {
+    var map = try getEnvMap(allocator, path);
     defer {
         var iter = map.iterator();
         while (iter.next()) |entry| {
@@ -41,9 +41,14 @@ test "read env" {
         map.deinit();
     }
 
-    const value = map.get("some_var").?;
-    try std.testing.expect(std.mem.eql(u8, value, "testing"));
+    return try allocator.dupe(u8, map.get(name) orelse return DotEnvError.ValueNotFound);
+}
 
-    const other_value = map.get("other_var").?;
-    try std.testing.expect(std.mem.eql(u8, other_value, "more_testing"));
+pub const DotEnvError = error{ValueNotFound};
+
+test "get env var" {
+    const value = try getEnvVar(std.testing.allocator, ".env.testing", "some_var");
+    defer std.testing.allocator.free(value);
+
+    try std.testing.expect(std.mem.eql(u8, value, "testing"));
 }
