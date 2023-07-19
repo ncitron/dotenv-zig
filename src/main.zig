@@ -34,8 +34,8 @@ pub fn getEnvVar(allocator: std.mem.Allocator, path: []const u8, name: []const u
     defer {
         var iter = map.iterator();
         while (iter.next()) |entry| {
-            std.testing.allocator.free(entry.key_ptr.*);
-            std.testing.allocator.free(entry.value_ptr.*);
+            allocator.free(entry.key_ptr.*);
+            allocator.free(entry.value_ptr.*);
         }
 
         map.deinit();
